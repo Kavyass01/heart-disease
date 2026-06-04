@@ -1,50 +1,175 @@
 import streamlit as st
 import pandas as pd
-import joblib
 
-st.set_page_config(page_title="Heart Disease Prediction")
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 
+# -----------------------------------
+# PAGE CONFIG
+# -----------------------------------
+st.set_page_config(
+    page_title="Heart Disease Prediction",
+    page_icon="❤️",
+    layout="wide"
+)
+
+# -----------------------------------
+# LOAD DATA & TRAIN MODEL
+# -----------------------------------
 @st.cache_resource
 def load_model():
-    try:
-        model = joblib.load("models/model.pkl")
-        scaler = joblib.load("models/scaler.pkl")
-        return model, scaler
-    except Exception as e:
-        st.error(f"Model loading error: {e}")
-        return None, None
+
+    df = pd.read_csv("data/updated_version.csv")
+    df.columns = df.columns.str.strip()
+
+    X = df.drop(columns=["heart_attack"])
+    y = df["heart_attack"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y
+    )
+
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(X_train)
+
+    model = RandomForestClassifier(
+        n_estimators=300,
+        max_depth=10,
+        random_state=42
+    )
+
+    model.fit(X_train_scaled, y_train)
+
+    return model, scaler
+
 
 model, scaler = load_model()
 
-if model is None:
-    st.stop()
+# -----------------------------------
+# TITLE
+# -----------------------------------
+st.title("❤️ Heart Disease Prediction")
 
-st.title("Heart Disease Prediction")
+st.markdown(
+    "Enter patient information below to estimate heart attack risk."
+)
 
-age = st.number_input("Age", 1, 120, 30)
-sex = st.selectbox("Sex", [0, 1])
-cp = st.number_input("Chest Pain Type", 0, 3, 0)
-trestbps = st.number_input("Resting Blood Pressure", 50, 250, 120)
-chol = st.number_input("Cholesterol", 50, 700, 200)
-fbs = st.selectbox("Fasting Blood Sugar", [0, 1])
-restecg = st.number_input("Rest ECG", 0, 2, 0)
-thalach = st.number_input("Max Heart Rate", 50, 250, 150)
-exang = st.selectbox("Exercise Angina", [0, 1])
-oldpeak = st.number_input("Old Peak", 0.0, 10.0, 1.0)
-slope = st.number_input("Slope", 0, 2, 1)
-ca = st.number_input("CA", 0, 4, 0)
-thal = st.number_input("Thal", 0, 3, 1)
+st.divider()
 
-if st.button("Predict"):
-    data = pd.DataFrame([[age, sex, cp, trestbps, chol, fbs,
-                          restecg, thalach, exang, oldpeak,
-                          slope, ca, thal]])
+# -----------------------------------
+# INPUTS
+# -----------------------------------
+col1, col2 = st.columns(2)
 
-    data_scaled = scaler.transform(data)
+with col1:
 
-    prediction = model.predict(data_scaled)
+    age = st.number_input(
+        "Age",
+        min_value=30,
+        max_value=100,
+        value=50
+    )
 
-    if prediction[0] == 1:
-        st.error("Heart Disease Detected")
+    sex = st.selectbox(
+        "Sex",
+        [0, 1],
+        help="0 = Female, 1 = Male"
+    )
+
+    total_cholesterol = st.number_input(
+        "Total Cholesterol",
+        min_value=100,
+        max_value=400,
+        value=200
+    )
+
+    ldl = st.number_input(
+        "LDL",
+        min_value=50,
+        max_value=300,
+        value=120
+    )
+
+    hdl = st.number_input(
+        "HDL",
+        min_value=20,
+        max_value=100,
+        value=50
+    )
+
+with col2:
+
+    systolic_bp = st.number_input(
+        "Systolic BP",
+        min_value=80,
+        max_value=250,
+        value=120
+    )
+
+    diastolic_bp = st.number_input(
+        "Diastolic BP",
+        min_value=50,
+        max_value=150,
+        value=80
+    )
+
+    smoking = st.selectbox(
+        "Smoking",
+        [0, 1],
+        help="0 = No, 1 = Yes"
+    )
+
+    diabetes = st.selectbox(
+        "Diabetes",
+        [0, 1],
+        help="0 = No, 1 = Yes"
+    )
+
+# -----------------------------------
+# PREDICTION
+# -----------------------------------
+if st.button("Predict Risk"):
+
+    input_data = pd.DataFrame({
+        "age": [age],
+        "sex": [sex],
+        "total_cholesterol": [total_cholesterol],
+        "ldl": [ldl],
+        "hdl": [hdl],
+        "systolic_bp": [systolic_bp],
+        "diastolic_bp": [diastolic_bp],
+        "smoking": [smoking],
+        "diabetes": [diabetes]
+    })
+
+    input_scaled = scaler.transform(input_data)
+
+    prediction = model.predict(input_scaled)[0]
+    probability = model.predict_proba(input_scaled)[0][1]
+
+    st.divider()
+
+    st.subheader("Prediction Result")
+
+    if prediction == 1:
+        st.error(
+            f"⚠️ High Risk of Heart Attack ({probability*100:.1f}%)"
+        )
     else:
-        st.success("No Heart Disease Detected")
+        st.success(
+            f"✅ Low Risk of Heart Attack ({(1-probability)*100:.1f}%)"
+        )
+
+# -----------------------------------
+# FOOTER
+# -----------------------------------
+st.markdown("---")
+st.caption(
+    "Heart Disease Analytics Platform"
+)
