@@ -26,6 +26,7 @@ def load_data():
     st.write(df.columns.tolist())
 
     return df
+    df = load_data()
 # -----------------------------------
 # OVERVIEW METRICS
 # -----------------------------------
