@@ -18,16 +18,14 @@ st.set_page_config(
 def load_data():
     df = pd.read_csv("data/updated_version.csv")
 
-    # Remove unwanted spaces from column names
+    # Remove leading/trailing spaces from column names
     df.columns = df.columns.str.strip()
 
-    # Debugging
-    print("Columns:", df.columns.tolist())
+    # Show actual column names for debugging
+    st.write("Detected Columns:")
+    st.write(df.columns.tolist())
 
     return df
-df = load_data()
-st.write("Detected Columns:")
-st.write(df.columns.tolist())
 # -----------------------------------
 # OVERVIEW METRICS
 # -----------------------------------
