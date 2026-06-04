@@ -16,20 +16,18 @@ st.set_page_config(
 # -----------------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/updated_version.csv")
+    df = pd.read_csv("data/updated_version.csv")
 
+    # Remove unwanted spaces from column names
+    df.columns = df.columns.str.strip()
+
+    # Debugging
+    print("Columns:", df.columns.tolist())
+
+    return df
 df = load_data()
-
-# -----------------------------------
-# TITLE
-# -----------------------------------
-st.title("🤖 AI Healthcare Insights")
-st.markdown(
-    "Automatically generated insights from patient health data."
-)
-
-st.divider()
-
+st.write("Detected Columns:")
+st.write(df.columns.tolist())
 # -----------------------------------
 # OVERVIEW METRICS
 # -----------------------------------
