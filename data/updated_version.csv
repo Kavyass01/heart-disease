@@ -1,248 +1,55 @@
-import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+import numpy as np
 
-# -----------------------------
-# PAGE CONFIG
-# -----------------------------
-st.set_page_config(
-    page_title="Heart Disease Analytics Dashboard",
-    page_icon="❤️",
-    layout="wide"
+# Reproducibility
+np.random.seed(42)
+
+# Number of records
+n = 1000
+
+# Generate features
+age = np.random.randint(30, 81, n)
+sex = np.random.randint(0, 2, n)  # 0=Female, 1=Male
+
+total_cholesterol = np.random.randint(150, 301, n)
+ldl = np.random.randint(70, 201, n)
+hdl = np.random.randint(30, 81, n)
+
+systolic_bp = np.random.randint(100, 181, n)
+diastolic_bp = np.random.randint(60, 111, n)
+
+smoking = np.random.randint(0, 2, n)
+diabetes = np.random.randint(0, 2, n)
+
+# Generate target (Heart Attack Risk)
+risk_score = (
+    (age > 55).astype(int)
+    + (total_cholesterol > 240).astype(int)
+    + (ldl > 160).astype(int)
+    + (hdl < 40).astype(int)
+    + (systolic_bp > 140).astype(int)
+    + smoking
+    + diabetes
 )
 
-# -----------------------------
-# LOAD DATA
-# -----------------------------
-@st.cache_data
-def load_data():
-    return pd.read_csv("updated_version.csv")
+heart_attack = (risk_score >= 3).astype(int)
 
-df = load_data()
+# Create DataFrame
+df = pd.DataFrame({
+    "Age": age,
+    "Sex": sex,
+    "Total Cholesterol": total_cholesterol,
+    "LDL": ldl,
+    "HDL": hdl,
+    "Systolic BP": systolic_bp,
+    "Diastolic BP": diastolic_bp,
+    "Smoking": smoking,
+    "Diabetes": diabetes,
+    "Heart Attack": heart_attack
+})
 
-# -----------------------------
-# SIDEBAR
-# -----------------------------
-st.sidebar.title("❤️ Navigation")
+# Save CSV
+df.to_csv("updated_version.csv", index=False)
 
-page = st.sidebar.radio(
-    "Select Page",
-    ["Dashboard", "Analytics", "Prediction"]
-)
-
-# -----------------------------
-# DASHBOARD
-# -----------------------------
-if page == "Dashboard":
-
-    st.title("❤️ Heart Disease Analytics Dashboard")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric("Patients", len(df))
-    col2.metric("Average Age", round(df["Age"].mean(), 1))
-    col3.metric("Smokers", int(df["Smoking"].sum()))
-    col4.metric("Diabetics", int(df["Diabetes"].sum()))
-
-    st.markdown("---")
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        fig = px.histogram(
-            df,
-            x="Age",
-            nbins=20,
-            title="Age Distribution"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with c2:
-        fig = px.pie(
-            df,
-            names="Heart Attack",
-            title="Heart Attack Distribution"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-# -----------------------------
-# ANALYTICS
-# -----------------------------
-elif page == "Analytics":
-
-    st.title("📊 Deep Analytics")
-
-    tab1, tab2, tab3 = st.tabs(
-        ["Correlation", "Risk Factors", "Health Metrics"]
-    )
-
-    with tab1:
-
-        corr = df.corr(numeric_only=True)
-
-        fig = px.imshow(
-            corr,
-            text_auto=True,
-            aspect="auto",
-            title="Correlation Heatmap"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    with tab2:
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            fig = px.box(
-                df,
-                x="Heart Attack",
-                y="LDL",
-                color="Heart Attack",
-                title="LDL vs Heart Attack"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-        with col2:
-
-            fig = px.box(
-                df,
-                x="Heart Attack",
-                y="Total Cholesterol",
-                color="Heart Attack",
-                title="Cholesterol vs Heart Attack"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-    with tab3:
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            fig = px.scatter(
-                df,
-                x="Systolic BP",
-                y="Diastolic BP",
-                color="Heart Attack",
-                title="Blood Pressure Analysis"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-        with col2:
-
-            fig = px.scatter(
-                df,
-                x="HDL",
-                y="LDL",
-                color="Heart Attack",
-                title="HDL vs LDL"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-# -----------------------------
-# PREDICTION PAGE
-# -----------------------------
-elif page == "Prediction":
-
-    st.title("🩺 Heart Attack Risk Assessment")
-
-    age = st.slider("Age", 18, 100, 40)
-
-    sex = st.selectbox(
-        "Sex",
-        ["Female", "Male"]
-    )
-
-    cholesterol = st.slider(
-        "Total Cholesterol",
-        100,
-        400,
-        200
-    )
-
-    ldl = st.slider(
-        "LDL",
-        50,
-        300,
-        120
-    )
-
-    hdl = st.slider(
-        "HDL",
-        20,
-        100,
-        50
-    )
-
-    systolic = st.slider(
-        "Systolic BP",
-        80,
-        220,
-        120
-    )
-
-    diastolic = st.slider(
-        "Diastolic BP",
-        50,
-        150,
-        80
-    )
-
-    smoking = st.selectbox(
-        "Smoking",
-        ["No", "Yes"]
-    )
-
-    diabetes = st.selectbox(
-        "Diabetes",
-        ["No", "Yes"]
-    )
-
-    if st.button("Calculate Risk"):
-
-        risk = 0
-
-        if age > 60:
-            risk += 20
-
-        if cholesterol > 240:
-            risk += 20
-
-        if ldl > 160:
-            risk += 20
-
-        if systolic > 140:
-            risk += 15
-
-        if smoking == "Yes":
-            risk += 15
-
-        if diabetes == "Yes":
-            risk += 10
-
-        risk = min(risk, 100)
-
-        st.subheader(f"Risk Score: {risk}%")
-
-        if risk < 30:
-            st.success("Low Risk")
-        elif risk < 60:
-            st.warning("Moderate Risk")
-        else:
-            st.error("High Risk")
-
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=risk,
-            title={'text': "Risk Level"},
-            gauge={'axis': {'range': [0, 100]}}
-        ))
-
-        st.plotly_chart(fig, use_container_width=True)
+print("updated_version.csv created successfully!")
+print(df.head())
