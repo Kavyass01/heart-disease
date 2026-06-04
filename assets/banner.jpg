@@ -1,0 +1,70 @@
+from PIL import Image, ImageDraw, ImageFont
+
+# Banner Size
+width = 1400
+height = 400
+
+# Create background
+img = Image.new("RGB", (width, height), (10, 25, 47))
+draw = ImageDraw.Draw(img)
+
+# Gradient effect
+for y in range(height):
+    r = 10
+    g = int(25 + (y / height) * 40)
+    b = int(47 + (y / height) * 80)
+    draw.line([(0, y), (width, y)], fill=(r, g, b))
+
+# Fonts
+try:
+    title_font = ImageFont.truetype("arial.ttf", 60)
+    subtitle_font = ImageFont.truetype("arial.ttf", 30)
+except:
+    title_font = ImageFont.load_default()
+    subtitle_font = ImageFont.load_default()
+
+# Heart Symbol
+draw.text(
+    (80, 120),
+    "❤️",
+    fill="white",
+    font=title_font
+)
+
+# Title
+draw.text(
+    (180, 110),
+    "Heart Disease Analytics Dashboard",
+    fill="white",
+    font=title_font
+)
+
+# Subtitle
+draw.text(
+    (185, 200),
+    "Machine Learning • Healthcare Analytics • Risk Prediction",
+    fill=(220, 220, 220),
+    font=subtitle_font
+)
+
+# ECG Line
+points = [
+    (900, 200),
+    (950, 200),
+    (980, 170),
+    (1010, 260),
+    (1040, 120),
+    (1080, 220),
+    (1120, 200),
+    (1180, 200),
+    (1220, 170),
+    (1260, 230),
+    (1320, 200)
+]
+
+draw.line(points, fill=(0, 255, 180), width=5)
+
+# Save Banner
+img.save("banner.jpg", quality=95)
+
+print("banner.jpg created successfully")
