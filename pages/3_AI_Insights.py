@@ -17,16 +17,21 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     df = pd.read_csv("data/updated_version.csv")
-
-    # Remove leading/trailing spaces from column names
     df.columns = df.columns.str.strip()
-
-    # Show actual column names for debugging
-    st.write("Detected Columns:")
-    st.write(df.columns.tolist())
-
     return df
-    df = load_data()
+
+df = load_data()
+
+# -----------------------------------
+# TITLE
+# -----------------------------------
+st.title("🤖 AI Healthcare Insights")
+st.markdown(
+    "Automatically generated insights from patient health data."
+)
+
+st.divider()
+
 # -----------------------------------
 # OVERVIEW METRICS
 # -----------------------------------
@@ -41,19 +46,19 @@ with col1:
 with col2:
     st.metric(
         "Avg Age",
-        round(df["Age"].mean(), 1)
+        round(df["age"].mean(), 1)
     )
 
 with col3:
     st.metric(
         "Avg Cholesterol",
-        round(df["Total Cholesterol"].mean(), 1)
+        round(df["total_cholesterol"].mean(), 1)
     )
 
 with col4:
     st.metric(
         "Heart Attack Cases",
-        int(df["Heart Attack"].sum())
+        int(df["heart_attack"].sum())
     )
 
 st.divider()
@@ -64,20 +69,20 @@ st.divider()
 st.subheader("📊 AI Feature Importance")
 
 features = [
-    "Age",
-    "Total Cholesterol",
-    "LDL",
-    "HDL",
-    "Systolic BP",
-    "Diastolic BP",
-    "Smoking",
-    "Diabetes"
+    "age",
+    "total_cholesterol",
+    "ldl",
+    "hdl",
+    "systolic_bp",
+    "diastolic_bp",
+    "smoking",
+    "diabetes"
 ]
 
 importance = []
 
 for col in features:
-    corr = abs(df[col].corr(df["Heart Attack"]))
+    corr = abs(df[col].corr(df["heart_attack"]))
     importance.append(corr)
 
 importance_df = pd.DataFrame({
@@ -107,14 +112,13 @@ st.plotly_chart(
 st.subheader("🎯 Risk Segmentation")
 
 df["Risk Category"] = pd.cut(
-    df["Age"],
+    df["age"],
     bins=[0, 40, 60, 100],
     labels=["Low", "Medium", "High"]
 )
 
 risk_data = (
-    df.groupby("Risk Category")
-    ["Heart Attack"]
+    df.groupby("Risk Category")["heart_attack"]
     .mean()
     .reset_index()
 )
@@ -122,7 +126,7 @@ risk_data = (
 fig = px.pie(
     risk_data,
     names="Risk Category",
-    values="Heart Attack",
+    values="heart_attack",
     title="Risk Category Distribution"
 )
 
@@ -138,8 +142,7 @@ st.subheader("🚨 Top Risk Factors")
 
 top_factors = importance_df.head(5)
 
-for i, row in top_factors.iterrows():
-
+for _, row in top_factors.iterrows():
     st.info(
         f"**{row['Feature']}** has a strong relationship with Heart Attack occurrence."
     )
@@ -151,27 +154,27 @@ st.subheader("🧠 Automated Health Insights")
 
 insights = []
 
-if df["Age"].mean() > 50:
+if df["age"].mean() > 50:
     insights.append(
         "Average patient age is above 50, indicating elevated cardiovascular risk."
     )
 
-if df["Smoking"].mean() > 0.3:
+if df["smoking"].mean() > 0.3:
     insights.append(
         "Smoking prevalence is relatively high within the dataset."
     )
 
-if df["Diabetes"].mean() > 0.2:
+if df["diabetes"].mean() > 0.2:
     insights.append(
         "Diabetes appears as a significant health concern."
     )
 
-if df["LDL"].mean() > 130:
+if df["ldl"].mean() > 130:
     insights.append(
         "Average LDL cholesterol exceeds recommended levels."
     )
 
-if df["Systolic BP"].mean() > 130:
+if df["systolic_bp"].mean() > 130:
     insights.append(
         "Average systolic blood pressure is elevated."
     )
@@ -190,7 +193,7 @@ for insight in insights:
 st.subheader("❤️ Heart Attack Analysis")
 
 attack_rate = (
-    df["Heart Attack"].sum() / len(df)
+    df["heart_attack"].sum() / len(df)
 ) * 100
 
 st.metric(
@@ -200,8 +203,8 @@ st.metric(
 
 fig = px.histogram(
     df,
-    x="Age",
-    color="Heart Attack",
+    x="age",
+    color="heart_attack",
     nbins=25,
     title="Heart Attack Distribution by Age"
 )
