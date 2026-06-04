@@ -1,0 +1,38 @@
+from PIL import Image, ImageDraw, ImageFont
+
+# Create image
+width, height = 600, 200
+img = Image.new("RGB", (width, height), color=(255, 255, 255))
+
+draw = ImageDraw.Draw(img)
+
+# Draw heart
+draw.polygon(
+    [
+        (120, 70),
+        (80, 30),
+        (40, 70),
+        (120, 160),
+        (200, 70),
+        (160, 30),
+    ],
+    fill=(220, 20, 60)
+)
+
+# Add text
+try:
+    font = ImageFont.truetype("arial.ttf", 40)
+except:
+    font = ImageFont.load_default()
+
+draw.text(
+    (250, 70),
+    "Heart Disease Analytics",
+    fill=(30, 30, 30),
+    font=font
+)
+
+# Save
+img.save("logo.png")
+
+print("logo.png created successfully")
