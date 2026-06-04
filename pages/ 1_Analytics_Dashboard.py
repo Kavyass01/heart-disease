@@ -16,7 +16,9 @@ st.set_page_config(
 # --------------------------------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/updated_version.csv")
+    df = pd.read_csv("data/updated_version.csv")
+    df.columns = df.columns.str.strip()
+    return df
 
 df = load_data()
 
@@ -42,19 +44,19 @@ with col1:
 with col2:
     st.metric(
         "Average Age",
-        f"{df['Age'].mean():.1f}"
+        f"{df['age'].mean():.1f}"
     )
 
 with col3:
     st.metric(
         "Smokers",
-        int(df["Smoking"].sum())
+        int(df["smoking"].sum())
     )
 
 with col4:
     st.metric(
         "Diabetes Cases",
-        int(df["Diabetes"].sum())
+        int(df["diabetes"].sum())
     )
 
 st.divider()
@@ -62,9 +64,10 @@ st.divider()
 # --------------------------------------------------
 # HEART ATTACK RATE
 # --------------------------------------------------
-if "Heart Attack" in df.columns:
+if "heart_attack" in df.columns:
+
     attack_rate = round(
-        (df["Heart Attack"].sum() / len(df)) * 100,
+        (df["heart_attack"].sum() / len(df)) * 100,
         2
     )
 
@@ -84,7 +87,7 @@ with col1:
 
     fig = px.histogram(
         df,
-        x="Age",
+        x="age",
         nbins=20,
         title="Age Distribution",
         template="plotly_white"
@@ -97,11 +100,11 @@ with col1:
 
 with col2:
 
-    if "Heart Attack" in df.columns:
+    if "heart_attack" in df.columns:
 
         fig = px.pie(
             df,
-            names="Heart Attack",
+            names="heart_attack",
             title="Heart Attack Distribution",
             hole=0.4
         )
@@ -122,7 +125,7 @@ with col1:
 
     fig = px.box(
         df,
-        y="LDL",
+        y="ldl",
         title="LDL Distribution"
     )
 
@@ -135,7 +138,7 @@ with col2:
 
     fig = px.box(
         df,
-        y="HDL",
+        y="hdl",
         title="HDL Distribution"
     )
 
@@ -151,11 +154,11 @@ st.subheader("❤️ Blood Pressure Analysis")
 
 fig = px.scatter(
     df,
-    x="Systolic BP",
-    y="Diastolic BP",
-    color="Heart Attack",
-    size="Age",
-    hover_data=["Smoking", "Diabetes"],
+    x="systolic_bp",
+    y="diastolic_bp",
+    color="heart_attack",
+    size="age",
+    hover_data=["smoking", "diabetes"],
     title="Blood Pressure Risk Analysis"
 )
 
@@ -174,16 +177,15 @@ col1, col2 = st.columns(2)
 with col1:
 
     smoking_data = (
-        df.groupby("Smoking")
-        ["Heart Attack"]
+        df.groupby("smoking")["heart_attack"]
         .mean()
         .reset_index()
     )
 
     fig = px.bar(
         smoking_data,
-        x="Smoking",
-        y="Heart Attack",
+        x="smoking",
+        y="heart_attack",
         title="Smoking vs Heart Attack Risk"
     )
 
@@ -195,16 +197,15 @@ with col1:
 with col2:
 
     diabetes_data = (
-        df.groupby("Diabetes")
-        ["Heart Attack"]
+        df.groupby("diabetes")["heart_attack"]
         .mean()
         .reset_index()
     )
 
     fig = px.bar(
         diabetes_data,
-        x="Diabetes",
-        y="Heart Attack",
+        x="diabetes",
+        y="heart_attack",
         title="Diabetes vs Heart Attack Risk"
     )
 
