@@ -7,9 +7,9 @@ np.random.seed(42)
 # Number of records
 n = 1000
 
-# Generate features
+# Features
 age = np.random.randint(30, 81, n)
-sex = np.random.randint(0, 2, n)  # 0=Female, 1=Male
+sex = np.random.randint(0, 2, n)
 
 total_cholesterol = np.random.randint(150, 301, n)
 ldl = np.random.randint(70, 201, n)
@@ -21,7 +21,7 @@ diastolic_bp = np.random.randint(60, 111, n)
 smoking = np.random.randint(0, 2, n)
 diabetes = np.random.randint(0, 2, n)
 
-# Generate target (Heart Attack Risk)
+# Risk score
 risk_score = (
     (age > 55).astype(int)
     + (total_cholesterol > 240).astype(int)
@@ -34,7 +34,7 @@ risk_score = (
 
 heart_attack = (risk_score >= 3).astype(int)
 
-# Create DataFrame
+# Dataset
 df = pd.DataFrame({
     "Age": age,
     "Sex": sex,
@@ -48,8 +48,8 @@ df = pd.DataFrame({
     "Heart Attack": heart_attack
 })
 
-# Save CSV
-df.to_csv("updated_version.csv", index=False)
+# Save
+df.to_csv("updated_version.csv", index=False, encoding="utf-8")
 
 print("updated_version.csv created successfully!")
 print(df.head())
