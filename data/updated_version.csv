@@ -1,0 +1,248 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(
+    page_title="Heart Disease Analytics Dashboard",
+    page_icon="❤️",
+    layout="wide"
+)
+
+# -----------------------------
+# LOAD DATA
+# -----------------------------
+@st.cache_data
+def load_data():
+    return pd.read_csv("updated_version.csv")
+
+df = load_data()
+
+# -----------------------------
+# SIDEBAR
+# -----------------------------
+st.sidebar.title("❤️ Navigation")
+
+page = st.sidebar.radio(
+    "Select Page",
+    ["Dashboard", "Analytics", "Prediction"]
+)
+
+# -----------------------------
+# DASHBOARD
+# -----------------------------
+if page == "Dashboard":
+
+    st.title("❤️ Heart Disease Analytics Dashboard")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Patients", len(df))
+    col2.metric("Average Age", round(df["Age"].mean(), 1))
+    col3.metric("Smokers", int(df["Smoking"].sum()))
+    col4.metric("Diabetics", int(df["Diabetes"].sum()))
+
+    st.markdown("---")
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        fig = px.histogram(
+            df,
+            x="Age",
+            nbins=20,
+            title="Age Distribution"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with c2:
+        fig = px.pie(
+            df,
+            names="Heart Attack",
+            title="Heart Attack Distribution"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+# -----------------------------
+# ANALYTICS
+# -----------------------------
+elif page == "Analytics":
+
+    st.title("📊 Deep Analytics")
+
+    tab1, tab2, tab3 = st.tabs(
+        ["Correlation", "Risk Factors", "Health Metrics"]
+    )
+
+    with tab1:
+
+        corr = df.corr(numeric_only=True)
+
+        fig = px.imshow(
+            corr,
+            text_auto=True,
+            aspect="auto",
+            title="Correlation Heatmap"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tab2:
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            fig = px.box(
+                df,
+                x="Heart Attack",
+                y="LDL",
+                color="Heart Attack",
+                title="LDL vs Heart Attack"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+
+            fig = px.box(
+                df,
+                x="Heart Attack",
+                y="Total Cholesterol",
+                color="Heart Attack",
+                title="Cholesterol vs Heart Attack"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+    with tab3:
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            fig = px.scatter(
+                df,
+                x="Systolic BP",
+                y="Diastolic BP",
+                color="Heart Attack",
+                title="Blood Pressure Analysis"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+
+            fig = px.scatter(
+                df,
+                x="HDL",
+                y="LDL",
+                color="Heart Attack",
+                title="HDL vs LDL"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+# -----------------------------
+# PREDICTION PAGE
+# -----------------------------
+elif page == "Prediction":
+
+    st.title("🩺 Heart Attack Risk Assessment")
+
+    age = st.slider("Age", 18, 100, 40)
+
+    sex = st.selectbox(
+        "Sex",
+        ["Female", "Male"]
+    )
+
+    cholesterol = st.slider(
+        "Total Cholesterol",
+        100,
+        400,
+        200
+    )
+
+    ldl = st.slider(
+        "LDL",
+        50,
+        300,
+        120
+    )
+
+    hdl = st.slider(
+        "HDL",
+        20,
+        100,
+        50
+    )
+
+    systolic = st.slider(
+        "Systolic BP",
+        80,
+        220,
+        120
+    )
+
+    diastolic = st.slider(
+        "Diastolic BP",
+        50,
+        150,
+        80
+    )
+
+    smoking = st.selectbox(
+        "Smoking",
+        ["No", "Yes"]
+    )
+
+    diabetes = st.selectbox(
+        "Diabetes",
+        ["No", "Yes"]
+    )
+
+    if st.button("Calculate Risk"):
+
+        risk = 0
+
+        if age > 60:
+            risk += 20
+
+        if cholesterol > 240:
+            risk += 20
+
+        if ldl > 160:
+            risk += 20
+
+        if systolic > 140:
+            risk += 15
+
+        if smoking == "Yes":
+            risk += 15
+
+        if diabetes == "Yes":
+            risk += 10
+
+        risk = min(risk, 100)
+
+        st.subheader(f"Risk Score: {risk}%")
+
+        if risk < 30:
+            st.success("Low Risk")
+        elif risk < 60:
+            st.warning("Moderate Risk")
+        else:
+            st.error("High Risk")
+
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=risk,
+            title={'text': "Risk Level"},
+            gauge={'axis': {'range': [0, 100]}}
+        ))
+
+        st.plotly_chart(fig, use_container_width=True)
